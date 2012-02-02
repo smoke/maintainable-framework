@@ -220,7 +220,9 @@ class Horde_Db_Adapter_Mysql_Schema extends Horde_Db_Adapter_Abstract_Schema
      */
     public function createTable($name, $options=array())
     {
-        $pk = isset($options['primaryKey']) && $options['primaryKey'] === false ? false : 'id';
+		$primaryKey = (isset($options['primaryKey']) && is_string($options['primaryKey']))
+			? $options['primaryKey'] : 'id';
+        $pk = isset($options['primaryKey']) && $options['primaryKey'] === false ? false : $primaryKey;
         $tableDefinition =
             new Horde_Db_Adapter_Mysql_TableDefinition($name, $this, $options);
         if ($pk != false) {

@@ -200,7 +200,7 @@ class Horde_Db_Adapter_Abstract_TableDefinition implements ArrayAccess
      */
     public function end()
     {
-        return $this->_base->endTable($this);
+        return $this->_base->endTable($this, $this->_options);
     }
 
     /**
