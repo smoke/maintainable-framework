@@ -102,7 +102,7 @@ class Mad_Script_Base
     /**
      * Connect to the database.
      * 
-     * @return  object  {@link Mad_Model_ConnectionAdapter_Abstract}
+     * @return  object  {@link Horde_Db_Adapter_Abstract}
      */
     protected function _connect()
     {

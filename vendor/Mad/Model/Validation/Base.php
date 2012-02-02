@@ -50,6 +50,7 @@ abstract class Mad_Model_Validation_Base
      * @param   string  $macro (format|length|numericality|presence|uniqueness)
      * @param   string  $attributes
      * @param   array   $options
+     * @return  Mad_Model_Validation_Base concrete validation object for this attribute
      */
     public static function factory($macro, $attribute, $options)
     {
@@ -71,17 +72,14 @@ abstract class Mad_Model_Validation_Base
      */
     public function validate($on, Mad_Model_Base $model)
     {
-        $this->_model = $model;
-
-        $errorMsgs = array();
-        foreach ($this->_model->getAttributes() as $name => $value) {
-            // Only validate specified attribute on given action
-            if ($name != $this->_attribute || $on != $this->_options['on']) {
-                continue;
-            }
-            // concrete class takes care of actual validation
-            if ($msg = $this->_validate($name, $value)) { return $msg; }
+        if ($this->_options['on'] == $on) {
+            $this->_model = $model;
+            $msg = $this->_validate($this->_attribute, $this->_model->{$this->_attribute});
+            $this->_model = null;
+            return $msg;
         }
+        
+        return null;
     }
 
     /**
@@ -92,6 +90,14 @@ abstract class Mad_Model_Validation_Base
         return $this->_attribute;
     }
 
+    /**
+     * Get the "on" option that this validation rule affects
+     */
+    public function getOptionOn()
+    {
+        return $this->_options['on'];
+    }
+    
     /*##########################################################################
     # Abstract Methods
     ##########################################################################*/

@@ -17,25 +17,25 @@
 class Mad_Model_Errors implements Iterator, Countable
 {
     public static $defaultErrorMessages = array(
-        'inclusion'            => "is not included in the list",
-        'exclusion'            => "is reserved",
-        'invalid'              => "is invalid",
-        'confirmation'         => "doesn't match confirmation",
-        'accepted'             => "must be accepted",
-        'empty'                => "can't be empty",
-        'blank'                => "can't be blank",
-        'tooLong'              => "is too long (maximum is %d characters)",
-        'tooShort'             => "is too short (minimum is %d characters)",
-        'wrongLength'          => "is the wrong length (should be %d characters)",
-        'taken'                => "has already been taken",
-        'notNumber'            => "is not a number",
-        'greaterThan'          => "must be greater than %d",
-        'greaterThanOrEqualTo' => "must be greater than or equal to %d",
-        'equalTo'              => "must be equal to %d",
-        'lessThan'             => "must be less than %d",
-        'lessThanOrEqualTo'    => "must be less than or equal to %d",
-        'odd'                  => "must be odd",
-        'even'                 => "must be even"
+        'inclusion'            => ":attrName is not included in the list",
+        'exclusion'            => ":attrName is reserved",
+        'invalid'              => ":attrName is invalid",
+        'confirmation'         => ":attrName doesn't match confirmation",
+        'accepted'             => ":attrName must be accepted",
+        'empty'                => ":attrName can't be empty",
+        'blank'                => ":attrName can't be blank",
+        'tooLong'              => ":attrName is too long (maximum is %d characters)",
+        'tooShort'             => ":attrName is too short (minimum is %d characters)",
+        'wrongLength'          => ":attrName is the wrong length (should be %d characters)",
+        'taken'                => ":attrName has already been taken",
+        'notNumber'            => ":attrName is not a number",
+        'greaterThan'          => ":attrName must be greater than %d",
+        'greaterThanOrEqualTo' => ":attrName must be greater than or equal to %d",
+        'equalTo'              => ":attrName must be equal to %d",
+        'lessThan'             => ":attrName must be less than %d",
+        'lessThanOrEqualTo'    => ":attrName must be less than or equal to %d",
+        'odd'                  => ":attrName must be odd",
+        'even'                 => ":attrName must be even"
     );
 
     /**
@@ -143,7 +143,11 @@ class Mad_Model_Errors implements Iterator, Countable
         foreach ($this->_errors as $attr => $messages) {
             foreach ($messages as $msg) { 
                 if ($attr != 'base') {
-                    $msg = $this->_base->humanAttributeName($attr).' '.$msg;
+                    $msg = str_replace(
+                    	array(':attrName', ':attrValue'), 
+                    	array($this->_base->humanAttributeName($attr), $this->_base->$attr), 
+                    	$msg
+                    );
                 }
                 $fullMessages[] = $msg; 
             }

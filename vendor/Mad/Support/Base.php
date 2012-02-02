@@ -14,6 +14,8 @@
  */
 class Mad_Support_Base
 {
+	public static $_modelsPath = 'models';
+	
     /**
      * Initalization routines required by the framework.
      */
@@ -37,7 +39,7 @@ class Mad_Support_Base
 
         // filter models through Mad_Model_Stream
         if (self::modelExists($class)) {
-            $filepath = "madmodel://".MAD_ROOT."/app/models/$filepath";
+            $filepath = "madmodel://".self::$_modelsPath."/$filepath";
         }
         require_once $filepath;
     }
@@ -54,8 +56,7 @@ class Mad_Support_Base
 
         // build array of all classes in the app/models models
         if (empty($classes)) {
-			$path = MAD_ROOT . DIRECTORY_SEPARATOR
-				  . 'app' . DIRECTORY_SEPARATOR . 'models';
+			$path = self::$_modelsPath;
 
 			$pathLen = strlen($path) + 1;
 			foreach(new RecursiveIteratorIterator(

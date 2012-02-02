@@ -95,8 +95,12 @@ class Mad_Model_Association_BelongsTo extends Mad_Model_Association_Proxy
             $binds = array(':value' => $pkValue);
 
             // load associated object
-            $object = $this->getAssocModel()->find('first', $options, $binds);
-            $this->_loaded['getObject'] = $object;
+            if (!empty($pkValue)) {
+                $object = $this->getAssocModel()->find('first', $options, $binds);
+                $this->_loaded['getObject'] = $object;
+            } else {
+            	$this->_loaded['getObject'] = null;
+            }
         }
         return $this->_loaded['getObject'];
     }

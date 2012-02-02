@@ -64,7 +64,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
 
     /**
      * Database adapter instance
-     * @var Mad_Model_ConnectionAdapter_Abstract
+     * @var Horde_Db_Adapter_Abstract
      */
     public $connection;
 
@@ -107,7 +107,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      * Has subclasses through a types table with class_name column
      * @var boolean
      */
-    protected $_inheritanceColumn = 'type';
+    protected $_inheritanceColumn = 'columnType';
 
     /**
      * @var array
@@ -191,7 +191,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
 
     /**
      * An array of messages stored when validations fail
-     * @var array
+     * @var Mad_Model_Errors
      */
     public $errors;
 
@@ -248,13 +248,15 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     {
         // reset attributes, errors, and associations
         $this->_attributes = $this->_attributesFromColumnDefinition();
-        $this->errors->clear();
+        $this->errors = new $this->errors($this);
         $this->_resetAssociations();
 
         // only need to clone validations if they exist
         if (isset($this->_validations)) {
-            foreach ($this->_validations as &$validation) {
-                $validation = clone $validation;
+            foreach ($this->_validations as $on => &$validations) {
+                foreach ($validations as &$validation) {
+                    $validation = clone $validation;
+                }
             }
         }
     }
@@ -280,7 +282,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     public function _get($name)
     {
         // active-record primary key value
-        if ($name == 'id') { $name = $this->primaryKey(); }
+        if ((string) $name == 'id') { $name = $this->primaryKey(); }
 
         // active-record || attribute-reader value
         if (array_key_exists($name, $this->_attributes)) {
@@ -315,10 +317,10 @@ abstract class Mad_Model_Base extends Mad_Support_Object
             throw new Mad_Model_Exception($msg);
         }
         // active-record primary key value
-        if ($name == 'id') { $name = $this->primaryKey(); }
+        if ((string) $name == 'id') { $name = $this->primaryKey(); }
 
         // cannot change pk if it's already set
-        if (($name == $this->primaryKey()) && !$this->isNewRecord()) {
+        if (((string) $name == (string) $this->primaryKey()) && !$this->isNewRecord()) {
             // ignore assignment of pk so that this works with activeresource
             return;
         }
@@ -529,7 +531,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     /**
      * Locate/Activate the connection
      * 
-     * @return  Mad_Model_ConnectionAdapter_Abstract
+     * @return  Horde_Db_Adapter_Abstract
      */
     public static function retrieveConnection()
     {
@@ -575,7 +577,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      * also be used to "borrow" the connection to do database work unrelated
      * to any of the specific Active Records.
      * 
-     * @return  Mad_Model_ConnectionAdapter_Abstract
+     * @return  Horde_Db_Adapter_Abstract
      */
     public static function connection() 
     {
@@ -684,7 +686,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
             $this->_columns = $this->connection->columns($this->tableName(), 
                                                   "$this->_className Columns");
             foreach ($this->_columns as $col) {
-                $col->setPrimary($col->getName() == $this->_primaryKey);
+                $col->setPrimary((string) $col->getName() == (string) $this->_primaryKey);
             }
         }
         return $this->_columns;
@@ -818,6 +820,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     /** 
      * Mass assign attributes for this model
      * @param   array   $attributes
+     * @return Mad_Model_Base fluent interface
      */
     public function setAttributes($attributes = array())
     {
@@ -830,6 +833,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
         } elseif (is_numeric($attributes)) {
             $this->{$this->primaryKey()} = $attributes;
         }
+        return $this;
     }
 
     /**
@@ -1085,12 +1089,20 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      * @param   array   $options
      * @param   array   $bindVars
      * @throws  Mad_Model_Exception_RecordNotFound
+     * @return Mad_Model_Collection|Mad_Model_Base
      */
     public static function find($type, $options=null, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_find($type, $options, $bindVars);
     }
 
@@ -1106,9 +1118,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function first($options=null, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_find('first', $options, $bindVars);
     }
 
@@ -1120,9 +1139,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function count($options=null, $bindVars=null) 
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_count($options, $bindVars);
     }
 
@@ -1157,9 +1183,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     protected static function findBySql($type, $sql, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_findBySql($type, $sql, $bindVars);
     }
 
@@ -1182,9 +1215,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     protected static function countBySql($sql, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_countBySql($sql, $bindVars);
     }
 
@@ -1197,9 +1237,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     protected static function paginate($options=null, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_paginate($options, $bindVars);
     }
 
@@ -1215,9 +1262,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function exists($id)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_exists($id);
     }
 
@@ -1240,9 +1294,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function create($attributes)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_create($attributes);
     }
 
@@ -1265,9 +1326,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function update($id, $attributes=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_update($id, $attributes);
     }
 
@@ -1289,9 +1357,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function delete($id)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_delete($id);
     }
 
@@ -1310,9 +1385,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function updateAll($set, $conditions=null, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_updateAll($set, $conditions, $bindVars);
     }
 
@@ -1328,9 +1410,16 @@ abstract class Mad_Model_Base extends Mad_Support_Object
      */
     public static function deleteAll($conditions=null, $bindVars=null)
     {
-        // hack to get name of this class (because of static)
-        $bt = debug_backtrace();
-        $m = new $bt[1]['class'];
+        if (function_exists('get_called_class')) {
+            $class = get_called_class();
+        } else {
+            // hack to get name of this class (because of static)
+            $bt = debug_backtrace();
+            $class = $bt[1]['class'];
+        }
+        
+        $m = new $class();
+        
         return $m->_deleteAll($conditions, $bindVars);
     }
 
@@ -1362,8 +1451,11 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     public function save()
     {
         // All saves are atomic - only start transaction if one hasn't been
-        $started = $this->connection->transactionStarted();
-        if (!$started) { $this->connection->beginDbTransaction(); }
+        $started = false;
+        if (!$this->connection->transactionStarted()) {
+            $this->connection->beginDbTransaction();
+            $started = true;
+        }
 
         try {
             // save associated models this model depends on & validate data
@@ -1375,13 +1467,13 @@ abstract class Mad_Model_Base extends Mad_Support_Object
             $this->_saveAssociations('after');
             $this->_newRecord = false;
 
-            if (!$started) { $this->connection->commitDbTransaction(); }
+            if ($started) { $this->connection->commitDbTransaction(); }
 
             $this->_throw = false;
             return $this;
 
         } catch (Exception $e) {
-            $this->connection->rollbackDbTransaction();
+            if ($started) { $this->connection->rollbackDbTransaction(); }
             if ($this->_throw) { 
                 $this->_throw = false;
                 throw $e; 
@@ -1389,7 +1481,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
             return false;
         }
     }
-
+    
     /**
      * Attempts to save the record, but instead of just returning false if it 
      * couldn't happen, it throws a Mad_Model_Exception_Validation
@@ -1467,19 +1559,22 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     public function destroy()
     {
         // All deletes are atomic
-        $started = $this->connection->transactionStarted();
-        if (!$started) { $this->connection->beginDbTransaction(); }
-
+        $started = false;
+        if (!$this->connection->transactionStarted()) {
+            $this->connection->beginDbTransaction();
+            $started = true;
+        }
+        
         try {
             $this->_beforeDestroy();
             $this->_destroy();
             $this->_afterDestroy();
 
-            if (!$started) { $this->connection->commitDbTransaction(); }            
+            if ($started) { $this->connection->commitDbTransaction(); }            
             return true;
 
         } catch (Exception $e) {
-            $this->connection->rollbackDbTransaction(false);
+            if ($started) { $this->connection->rollbackDbTransaction(); }
             return false;
         }
     }
@@ -2101,8 +2196,8 @@ abstract class Mad_Model_Base extends Mad_Support_Object
         $options = is_array($last) ? array_pop($attributes) : array();
 
         $with = "/^[0-9a-z_\.-]+@(([0-9]{1,3}\.){3}[0-9]{1,3}|".
-                "([0-9a-z][0-9a-z-]*[0-9a-z]\.)+[a-z]{2,3})$/i";
-        $msg  = "must be a valid address";
+                "([0-9a-z][0-9a-z-]*[0-9a-z]\.)+[a-z]{2,4})$/i";
+        $msg  = ":attrName must be a valid address";
         $options = array_merge(array('with' => $with, 'message' => $msg), $options);
         $this->_addValidation('format', $attributes, $options);
     }
@@ -2431,13 +2526,14 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     protected function _find($type, $options, $bindVars)
     {
         $bindVars = !empty($bindVars) ? $bindVars : array();
-
+        $options = (array) $options;
+        
         // find the first record that match the options
-        if ($type == 'first') {
+        if ((string) $type == 'first') {
             return $this->_findInitial($options, $bindVars);
 
         // find all records that match the options
-        } elseif ($type == 'all') {
+        } elseif ((string) $type == 'all') {
             return $this->_findEvery($options, $bindVars);
 
         // type must match one of the above options
@@ -2522,8 +2618,8 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     {
         // build list of ids/binds
         $size = count($ids);
-        for ($i = 0; $i < $size; $i++) $inStr[] = ":id{$i}";
-        for ($i = 0; $i < $size; $i++) $bindVars[":id{$i}"] = (int) $ids[$i];
+        for ($i = 0; $i < $size; $i++) $inStr[] = ":id{$i}di";
+        for ($i = 0; $i < $size; $i++) $bindVars[":id{$i}di"] = (int) $ids[$i];
 
         $conditions = null;
         if (isset($options['conditions'])) {
@@ -2624,11 +2720,11 @@ abstract class Mad_Model_Base extends Mad_Support_Object
         $bindVars = !empty($bindVars) ? $bindVars : array();
 
         // find all records that match the options
-        if ($type == 'all') {
+        if ((string) $type == 'all') {
             return $this->_findEveryBySql($sql, $bindVars);
 
         // find the first record that match the options
-        } elseif ($type == 'first') {
+        } elseif ((string) $type == 'first') {
             return $this->_findInitialBySql($sql, $bindVars);
         }
     }
@@ -3017,6 +3113,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
                ") VALUES (".
                "    ".$this->getInsertValuesStr().
                ")";
+      
         $insertId = $this->connection->insert($sql, "$this->_className Insert");
 
         // only set the pk if it's not already set
@@ -3041,7 +3138,7 @@ abstract class Mad_Model_Base extends Mad_Support_Object
                 $sets[] = $this->connection->quoteColumnName($column)." = ".
                           $this->_quoteValue($value);
 
-            } elseif ($column == $this->primaryKey()) {
+            } elseif ((string) $column == (string) $this->primaryKey()) {
                 $pkVal = $this->_quoteValue($value);
             }
         }
@@ -3063,11 +3160,11 @@ abstract class Mad_Model_Base extends Mad_Support_Object
 
         // new records
         if (array_key_exists('created_at', $attr) && 
-            (empty($this->created_at) || $this->created_at == '0000-00-00 00:00:00')) {
+            (empty($this->created_at) || (string) $this->created_at == '0000-00-00 00:00:00')) {
             $this->writeAttribute('created_at', $time);
         }
         if (array_key_exists('created_on', $attr) && 
-            (empty($this->created_on) || $this->created_on == '0000-00-00')) {
+            (empty($this->created_on) || (string) $this->created_on == '0000-00-00')) {
             $this->writeAttribute('created_on', $date);
         }
 
@@ -3361,7 +3458,12 @@ abstract class Mad_Model_Base extends Mad_Support_Object
     protected function _addValidation($type, $attributes, $options)
     {
         foreach ((array)$attributes as $attribute) {
-            $this->_validations[] = Mad_Model_Validation_Base::factory($type, $attribute, $options);
+        	$validation = Mad_Model_Validation_Base::factory($type, $attribute, $options);
+        	$on = $validation->getOptionOn();
+    		if (!isset($this->_validations[$on])) {
+    			$this->_validations[$on] = array();
+    		}
+            $this->_validations[$on][] = $validation;
         }
     }
 
@@ -3377,20 +3479,26 @@ abstract class Mad_Model_Base extends Mad_Support_Object
 
         // validate all
         $this->validate();
-        foreach ($this->_validations as $validation) {
-            $validation->validate('save', $this);
+        if (isset($this->_validations['save'])) {
+	        foreach ($this->_validations['save'] as $validation) {
+	            $validation->validate('save', $this);
+	        }
         }
         // validate create
         if ($this->isNewRecord()) {
             $this->validateOnCreate();
-            foreach ($this->_validations as $validation) {
-                $validation->validate('create', $this);
+            if (isset($this->_validations['create'])) {
+	            foreach ($this->_validations['create'] as $validation) {
+	                $validation->validate('create', $this);
+	            }
             }
         // validate update
         } else {
             $this->validateOnUpdate();
-            foreach ($this->_validations as $validation) {
-                $validation->validate('update', $this);
+            if (isset($this->_validations['update'])) {
+	            foreach ($this->_validations['update'] as $validation) {
+	                $validation->validate('update', $this);
+	            }
             }
         }
         $this->_afterValidation();
@@ -3462,9 +3570,9 @@ abstract class Mad_Model_Base extends Mad_Support_Object
 
         // save belongsTo before, and all others after
         foreach ($this->_associations as $association) {
-            if ($association instanceof Mad_Model_Association_BelongsTo && $type == 'before') {
+            if ($association instanceof Mad_Model_Association_BelongsTo && (string) $type == 'before') {
                 $association->save();
-            } elseif (!$association instanceof Mad_Model_Association_BelongsTo && $type == 'after') {
+            } elseif (!$association instanceof Mad_Model_Association_BelongsTo && (string) $type == 'after') {
                 $association->save();
             }
         }

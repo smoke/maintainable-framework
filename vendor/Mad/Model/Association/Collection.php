@@ -53,13 +53,13 @@ abstract class Mad_Model_Association_Collection extends Mad_Model_Association_Ba
     public function setLoaded($loaded=true)
     {
         // set as loaded
-        if ($loaded) {
-            if (!isset($this->_loaded['getObjects'])) {
-                $this->_loaded['getObjects'] = array();
-            }
-        // set as not loaded
+    	if (($loaded instanceof Mad_Model_Collection) || is_array($loaded)) {
+    		$this->_loaded['getObjects'] = $loaded;
+    	} elseif ($loaded === true) {
+        	$this->_loaded['getObjects'] = array();
         } else {
-            unset($this->_loaded['getObjects']);
+        // set as not loaded
+        	unset($this->_loaded['getObjects']);
         }
     }
 
@@ -285,7 +285,7 @@ abstract class Mad_Model_Association_Collection extends Mad_Model_Association_Ba
     public function addObject($args=array())
     {
         $models = !empty($args[0]) ? $args[0] : null;
-        $models = is_array($models) ? $models : array($models);
+        $models = is_array($models) || $models instanceof Mad_Model_Collection ? $models : array($models);
 
         // can't set objects by both object and id
         if (isset($this->_loaded['getObjectIds'])) {
@@ -332,7 +332,7 @@ abstract class Mad_Model_Association_Collection extends Mad_Model_Association_Ba
     public function replaceObjects($args=array())
     {
         $models = isset($args[0]) ? $args[0] : null;
-        $models = is_array($models) ? $models : array($models);
+        $models = is_array($models) || $models instanceof Mad_Model_Collection ? $models : array($models);
 
         // what type of association ref are we using
         $useObjects   = isset($models[0]) && $models[0] instanceof Mad_Model_Base;
@@ -384,7 +384,7 @@ abstract class Mad_Model_Association_Collection extends Mad_Model_Association_Ba
     public function deleteObjects($args=array())
     {
         $models = isset($args[0]) ? $args[0] : null;
-        $models = is_array($models) ? $models : array($models);
+        $models = is_array($models) || $models instanceof Mad_Model_Collection ? $models : array($models);
 
         // build array of ids that we're deleting
         foreach ($models as $model) {

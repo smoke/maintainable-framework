@@ -319,7 +319,7 @@ abstract class Mad_Test_Unit extends PHPUnit_Framework_TestCase
     /**
      * Connect to the database.
      * 
-     * @return  object  {@link Mad_Model_ConnectionAdapter_Abstract}
+     * @return  object  {@link Horde_Db_Adapter_Abstract}
      */
     protected function _connect()
     {

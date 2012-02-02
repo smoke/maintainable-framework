@@ -79,7 +79,7 @@ class Mad_Test_Fixture_Base
 
     /**
      * The connection object - used to load data from yml into the tables
-     * @var Mad_Model_ConnectionAdapter_Abstract
+     * @var Horde_Db_Adapter_Abstract
      */
     protected $_connection = null;
 

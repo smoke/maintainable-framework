@@ -43,15 +43,13 @@ abstract class Mad_Model_Association_Proxy extends Mad_Model_Association_Base
     /**
      * Set that this association's object data as loaded
      *
-     * @param   boolean $loaded
+     * @param   boolean|mixed $loaded
      */
     public function setLoaded($loaded=true)
     {
         // set as loaded
         if ($loaded) {
-            if (!isset($this->_loaded['getObject'])) {
-                $this->_loaded['getObject'] = '';
-            }
+            $this->_loaded['getObject'] = $loaded;
         // set as not loaded
         } else {
             unset($this->_loaded['getObject']);

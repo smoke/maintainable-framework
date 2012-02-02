@@ -127,7 +127,8 @@ class Mad_Model_Serializer_Base
 
             $method = Mad_Support_Inflector::camelize($association, 'lower');
 
-            if ($type == 'hasMany' || $type == 'hasAndBelongsToMany') {
+            $records = null;
+            if ($type == 'hasMany' || $type == 'hasAndBelongsToMany' || $type == 'hasManyThrough') {
                 $records = $this->_record->{$method}()->getCollection();
 
             } elseif ($type == 'hasOne' || $type == 'belongsTo') {
