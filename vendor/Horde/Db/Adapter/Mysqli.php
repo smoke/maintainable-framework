@@ -136,7 +136,10 @@ class Horde_Db_Adapter_Mysqli extends Horde_Db_Adapter_Abstract
         // everything as a string.
         if (defined('MYSQLI_OPT_INT_AND_FLOAT_NATIVE'))
             $mysqli->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, true);
-
+            
+		if (isset($config['charset']))
+			$mysqli->set_charset($config['charset']);
+			
         $this->_connection = $mysqli;
         $this->_active     = true;
     }
@@ -191,7 +194,7 @@ class Horde_Db_Adapter_Mysqli extends Horde_Db_Adapter_Abstract
      * @param   string  $sql
      * @param   mixed   $arg1  Either an array of bound parameters or a query name.
      * @param   string  $arg2  If $arg1 contains bound parameters, the query name.
-     * @return  array
+     * @return  Horde_Db_Adapter_Mysqli_Result
      */
     public function select($sql, $arg1=null, $arg2=null)
     {
