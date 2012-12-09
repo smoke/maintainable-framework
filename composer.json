@@ -1,0 +1,36 @@
+{
+    "name": "smoke/maintainable-framework",
+    "type": "library",
+    "keywords": [
+        "framework",
+        "maintainable",
+        "smoke"
+    ],
+    "homepage": "https://github.com/smoke/maintainable-framework",
+    "license": "Maintainable Software and contributors @see LICENSE.txt",
+    "require": {
+        "php": ">=5.1.4"
+    },
+    "suggest": {
+        "smoke/smoke": "Smoke`s libraries, tools and other for extending and supporting Zend Framework, Mad (maintainable-framework) and other tools I use."
+    },
+    "autoload": {
+        "include_path": "vendor/"
+    },
+    "bin": [
+        "script/console",
+        "script/createapp",
+        "script/dbconsole",
+        "script/generate",
+        "script/task"
+    ],
+    "replace": {
+        "smoke/maintainable-framework-mad": "self.version",
+        "smoke/maintainable-framework-horde": "self.version"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
