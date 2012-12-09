@@ -14,9 +14,7 @@
     "suggest": {
         "smoke/smoke": "Smoke`s libraries, tools and other for extending and supporting Zend Framework, Mad (maintainable-framework) and other tools I use."
     },
-    "autoload": {
-        "include_path": ["vendor/"]
-    },
+    "include_path": ["vendor/"],
     "bin": [
         "script/console",
         "script/createapp",
