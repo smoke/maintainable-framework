@@ -74,7 +74,7 @@ class Horde_Db_Adapter_Pdo_Mysql extends Horde_Db_Adapter_Pdo_Abstract
      * Setting a bogus socket does not appear to work.
      *
      * @throws  Horde_Db_Exception
-     * @return  array  [dsn, username, password]
+     * @return  array  [dsn, username, password, driver_options]
      */
     protected function _parseConfig()
     {
@@ -90,6 +90,16 @@ class Horde_Db_Adapter_Pdo_Mysql extends Horde_Db_Adapter_Pdo_Abstract
                 $msg = 'pdo_mysql ignores port unless IP address is used for host';
                 throw new Horde_Db_Exception($msg);
             }
+        }
+        
+        if (!isset($this->_config['driver_options'])) {
+            $this->_config['driver_options'] = array();
+        }
+        
+        if (isset($this->_config['charset'])) {
+            $this->_config['driver_options'] += array(
+                PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . $this->_config['charset']
+            );
         }
 
         return parent::_parseConfig();

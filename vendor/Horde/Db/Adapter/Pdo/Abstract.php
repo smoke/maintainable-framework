@@ -32,11 +32,11 @@ abstract class Horde_Db_Adapter_Pdo_Abstract extends Horde_Db_Adapter_Abstract
      */
     public function connect()
     {
-        list($dsn, $user, $pass) = $this->_parseConfig();
+        list($dsn, $user, $pass, $driver_options) = $this->_parseConfig();
 
         $oldErrorReporting = error_reporting(0);
         try {
-            $pdo = new PDO($dsn, $user, $pass);
+            $pdo = new PDO($dsn, $user, $pass, $driver_options);
             error_reporting($oldErrorReporting);
         } catch (PDOException $e) {
             error_reporting($oldErrorReporting);
@@ -169,7 +169,7 @@ abstract class Horde_Db_Adapter_Pdo_Abstract extends Horde_Db_Adapter_Abstract
 
         // collect options to build PDO Data Source Name (DSN) string
         $dsnOpts = $this->_config;
-        unset($dsnOpts['adapter'], $dsnOpts['username'], $dsnOpts['password']);
+        unset($dsnOpts['adapter'], $dsnOpts['username'], $dsnOpts['password'], $dsnOpts['driver_options']);
 
         // rewrite rails config key names to pdo equivalents
         $rails2pdo = array('database' => 'dbname', 'socket' => 'unix_socket');
@@ -178,6 +178,10 @@ abstract class Horde_Db_Adapter_Pdo_Abstract extends Horde_Db_Adapter_Abstract
                 $dsnOpts[$to] = $dsnOpts[$from];
                 unset($dsnOpts[$from]);
             }
+        }
+
+        if (!isset($this->_config['driver_options'])) {
+            $this->_config['driver_options'] = array();
         }
 
         // build DSN string
@@ -191,7 +195,8 @@ abstract class Horde_Db_Adapter_Pdo_Abstract extends Horde_Db_Adapter_Abstract
         return array(
             $dsn,
             $this->_config['username'],
-            $this->_config['password']);
+            $this->_config['password'],
+            $this->_config['driver_options']);
     }
 
 }
