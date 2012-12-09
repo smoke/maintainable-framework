@@ -1,7 +1,11 @@
-<?= "<?php\n" ?>
+<?php echo "<?php\n" ?>
 
-class <?= $this->className ?> extends Mad_Model_Base
+class <?php echo $this->className ?> extends Mad_Model_Base
 {
+<?php if ($this->tableName) { ?>
+    protected $_tableName = '<?php echo $this->tableName ?>';
+    
+<?php }?>
     // relationships and validation
     protected function _initialize()
     {
