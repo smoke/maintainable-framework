@@ -105,6 +105,21 @@ class Mad_Model_Collection implements ArrayAccess, Iterator, Countable
         return $conversion->toXml($this, $options);
     }
 
+    /**
+     * Serialize the collection to JSON.
+     */
+    public function toJson($options = array())
+    {
+        $modelsJsonArray = array();
+        foreach ($this as $model) {
+            /* @var $model Mad_Model_Base */
+            $modelsJsonArray[] = $model->toJson($options);
+        }
+        
+        $modelsJson = '[' . implode(',', $modelsJsonArray) . ']';
+        return $modelsJson;
+    }
+    
     /*##########################################################################
     # Countable Interface
     ##########################################################################*/
