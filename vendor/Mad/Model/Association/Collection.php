@@ -247,7 +247,7 @@ abstract class Mad_Model_Association_Collection extends Mad_Model_Association_Ba
                          'from'       => "$assocTable, $joinTable",
                          'conditions' => "$assocTable.$assocPkName = $joinTable.$assocFkName ".
                                          "AND $joinTable.$fkName = :pkValue $conditions",
-                         'order'      => $options['order'],
+                         'order'      => $order,
                          'limit'      => $options['limit'],
                          'offset'     => $options['offset'], 
                          'page'       => $options['page'], 

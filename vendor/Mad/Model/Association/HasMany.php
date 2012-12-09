@@ -256,7 +256,6 @@ class Mad_Model_Association_HasMany extends Mad_Model_Association_Collection
 
         $options = array('conditions' => $conditions, 'order'   => $order,
                          'select'     => $select,     'include' => $include,
-                         'order'      => $options['order'],
                          'limit'      => $options['limit'], 
                          'offset'     => $options['offset'], 
                          'page'       => $options['page'], 
