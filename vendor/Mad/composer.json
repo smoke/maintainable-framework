@@ -1,5 +1,6 @@
 {
     "name": "smoke/maintainable-framework-mad",
+    "type": "library",
     "keywords": [
         "mad",
         "maintainable",
