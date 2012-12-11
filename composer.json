@@ -20,7 +20,6 @@
             "Horde": "vendor/"
         }
     },
-    // include-path will be needed until the library is refactored to ommit require_once usage
     "include-path": ["vendor/"],
     "bin": [
         "script/console",
