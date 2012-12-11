@@ -4,3 +4,9 @@ test/tmp/**/*
 .DS_Store
 nbproject/
 doc/build/*
+.hg
+.hgignore
+.mc
+.project
+.settings
+.buildpath
